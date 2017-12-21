@@ -27,8 +27,8 @@ library
                      , http-client-tls
                      , interpolatedstring-perl6
                      , megaparsec
-                     , servant >= 0.9 && < 0.11
-                     , servant-client >= 0.9 && < 0.11
+                     , servant
+                     , servant-client
                      , telegram-api
                      , text
                      , time

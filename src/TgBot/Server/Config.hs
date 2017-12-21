@@ -23,7 +23,7 @@ instance FromJSON BotConfig where
         <$> o .: "token"
         <*> o .: "channel"
         <*> o .: "time"
-        <*> o .: "hexiperf_server"
+        <*> o .: "stats_server"
     parseJSON wat = typeMismatch "BotConfig" wat
 
 readConfig :: FilePath -> IO BotConfig

@@ -64,7 +64,7 @@ runReplyStats url token manager = loop Nothing
       let client = getUpdatesM $ GetUpdatesRequest
               { updates_offset = moffset
               , updates_limit = Nothing
-              , updates_timeout = Just 5  -- ^ seconds
+              , updates_timeout = Just 5
               , updates_allowed_updates = Just ["message"]
               }
       upd <- runClient client token manager
