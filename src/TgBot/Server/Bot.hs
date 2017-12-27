@@ -34,7 +34,7 @@ dumpStatsOnAlarm url token manager (Just channel) (Just tod) = do
     time <- getNextAlarm tod
     alrm <- newAlarmClock (sendStatsToChannel url token manager channel tod)
     setAlarm alrm time
-dumpStatsOnAlarm _ _ _ _ _ = print [qc|No stats channel setting in config|]
+dumpStatsOnAlarm _ _ _ _ _ = putStrLn [qc|No stats channel setting in config|]
 
 sendStatsToChannel :: Text -> Token -> Manager -> Int64 -> TimeOfDay
     -> AlarmClock UTCTime -> IO ()
@@ -54,7 +54,8 @@ getNextAlarm tod = do
                  then lt{localTimeOfDay = tod}
                  else LocalTime (succ (localDay lt)) tod
     let new = zonedTimeToUTC $ now{zonedTimeToLocalTime = lt'}
-    print [qc|Next Alarm is {new}|]
+    local <- utcToLocalZonedTime new
+    putStrLn [qc|Next Alarm is {local}|]
     return new
 
 runReplyStats :: Text -> Token -> Manager -> IO ()
@@ -70,7 +71,7 @@ runReplyStats url token manager = loop Nothing
       upd <- runClient client token manager
       case upd of
           Left servantError -> do
-              print [qc| Querying telegram api error: {servantError}|]
+              putStrLn [qc| Querying telegram api error: {servantError}|]
               threadDelay $ 5 * 1000000
           Right resp -> do
               let updates = result resp
@@ -85,7 +86,7 @@ processUserRequest statsUrl token manager upd = do
     flip (maybe (return ())) ((message >=> text) upd) $ \msg -> do
         case parseTgCommand msg of
             Nothing ->
-                  print [qc|Invalid user command: {msg}|]
+                  putStrLn [qc|Invalid user command: {msg}|]
             Just TgCommandStats ->
                   sendStatsReply statsUrl reply'
             Just TgCommandHelp ->
@@ -100,7 +101,7 @@ sendStatsReply statsUrl reply' = do
     r <- queryStats statsUrl
     case r of
         Left err -> do
-            print [qc|Error while querying stats: {err}|]
+            putStrLn [qc|Error while querying stats: {err}|]
             reply' $ "Error while querying stats"
         Right stats ->
             reply' $ T.pack $ show stats
@@ -125,7 +126,7 @@ reply token manager chatId msgId txt = do
     res <- runClient client token manager
     case res of
         Left servantError -> do
-            print [qc| Send message error: {servantError}|]
+            putStrLn [qc| Send message error: {servantError}|]
             threadDelay $ 5 * 1000000
         Right resp ->
             return ()
