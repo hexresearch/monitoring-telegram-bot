@@ -26,4 +26,12 @@ let
         servant-client = dontCheck (dontHaddock (call ./nixdeps/servant-client.nix {}));
       };
     };
-in { inherit externalPackages; }
+  internalPackages = externalPackages.extend (haskellPackagesNew: haskellPackagesOld:
+      let
+        cabalCall  = name: path: addSrcFilter (haskellPackagesNew.callCabal2nix name path { });
+        cabalCallE = name: path: addSrcFilter (justStaticExecutables (haskellPackagesNew.callCabal2nix name path { }));
+      in rec {
+        monitoring-telegram-bot   = cabalCall "monitoring-telegram-bot" ./.;
+      }
+    );
+in { inherit externalPackages internalPackages; }

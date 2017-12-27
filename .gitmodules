@@ -1,0 +1,3 @@
+[submodule "deployment/nixdeploy"]
+	path = deployment/nixdeploy
+	url = git@github.com:hexresearch/nixdeploy.git
