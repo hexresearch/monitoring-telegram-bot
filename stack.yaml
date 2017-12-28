@@ -1,0 +1,14 @@
+flags: {}
+nix:
+  enable: false
+  packages:
+    - binutils
+    - git
+    - gmp
+    - openssl
+    - zlib
+extra-package-dbs: []
+packages:
+- '.'
+extra-deps:
+resolver: lts-8.22
