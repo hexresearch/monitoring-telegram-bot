@@ -20,7 +20,11 @@ let
     text = ''
         token: "433458637:AAEs7tbwD3bIOOmyV7oAr1q4lueoGo2P8-0"
         channel: -1001230156811
-        time: "10:00:00"
+        time:
+          - "07:00:00"
+          - "10:00:00"
+          - "16:00:00"
+          - "22:00:00"
         stats_server: "http://localhost:${builtins.toString ekg-port}"
     '';
   };
@@ -31,12 +35,12 @@ let
       port = sshPort; # Port of machine to connect to via SSH
       user = sshUser; # User of machine with passwordless sudo and allowed SSH login
       services = { # Set of systemd services to install and start
-        hexiperf-node = { # key value is used as name of systemd unit file
+        hexiperf-monitoring-bot = { # key value is used as name of systemd unit file
           unit = pkgs.writeTextFile { # text of the systemd unit
-            name = "hexiperf-node";
+            name = "hexiperf-monitoring-bot";
             text = ''
               [Unit]
-              Description=Worker in the cluster of Iperf3 bandwidth measurement nodes
+              Description=Monitoring bot for hexiperf dispatcher
               After=networking.target
               StartLimitIntervalSec=60
               [Service]
