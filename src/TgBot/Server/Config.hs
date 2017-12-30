@@ -1,5 +1,6 @@
 module TgBot.Server.Config (
     BotConfig(..)
+  , BotSchedule
   , readConfig
   ) where
 
@@ -13,10 +14,12 @@ import Data.Yaml.Config
 
 data BotConfig = BotConfig {
     botToken    :: !Text
-  , botChannel  :: !(Maybe Int64) -- we don't have names for private channels: use id
-  , botSchedule :: !(Maybe TimeOfDay)
+  , botChannel  :: !Int64 -- we don't have names for private channels: use id
+  , botSchedule :: !BotSchedule
   , botStatsUrl :: !Text
 }-- deriving Generic
+
+type BotSchedule = [TimeOfDay]
 
 instance FromJSON BotConfig where
     parseJSON (Object o) = BotConfig

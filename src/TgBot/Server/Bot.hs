@@ -18,7 +18,7 @@ import           Web.Telegram.API.Bot
 
 import           Text.InterpolatedString.Perl6 (qc)
 
-import           TgBot.Server.Config (BotConfig(..))
+import           TgBot.Server.Config (BotConfig(..), BotSchedule)
 import           TgBot.ParseUserMessage
 import           TgBot.StatsClient
 
@@ -29,22 +29,26 @@ runStatsBot cfg = do
     dumpStatsOnAlarm (botStatsUrl cfg) token manager (botChannel cfg) (botSchedule cfg)
     runReplyStats (botStatsUrl cfg) token manager
 
-dumpStatsOnAlarm :: Text -> Token -> Manager -> Maybe Int64 -> Maybe TimeOfDay -> IO ()
-dumpStatsOnAlarm url token manager (Just channel) (Just tod) = do
-    time <- getNextAlarm tod
-    alrm <- newAlarmClock (sendStatsToChannel url token manager channel tod)
-    setAlarm alrm time
-dumpStatsOnAlarm _ _ _ _ _ = putStrLn [qc|No stats channel setting in config|]
+dumpStatsOnAlarm :: Text -> Token -> Manager -> Int64 -> BotSchedule -> IO ()
+dumpStatsOnAlarm url token manager channel schedule =
+  repeatWithSchedule schedule $ sendStatsReply url $ reply token manager channel Nothing
 
-sendStatsToChannel :: Text -> Token -> Manager -> Int64 -> TimeOfDay
-    -> AlarmClock UTCTime -> IO ()
-sendStatsToChannel url token manager channel tod _ = do
-    time <- getNextAlarm tod
-    alrm <- newAlarmClock (sendStatsToChannel url token manager channel tod)
-    setAlarm alrm time
-    sendStatsReply url reply'
+repeatWithSchedule :: BotSchedule -> IO a -> IO ()
+repeatWithSchedule schedule ioa = setNextAlarms schedule onAlarm
   where
-    reply' = reply token manager channel Nothing
+    onAlarm :: AlarmClock UTCTime -> IO ()
+    onAlarm _ = do
+        setNextAlarms schedule onAlarm
+        void ioa
+
+setNextAlarms :: BotSchedule -> (AlarmClock UTCTime -> IO ()) -> IO ()
+setNextAlarms schedule onAlarm = do
+  alrm <- newAlarmClock onAlarm
+  times <- traverse getNextAlarm schedule
+  -- setAlarm: Make the AlarmClock go off at (or shortly after) the given
+  -- time. This can be called more than once; in which case, the alarm will
+  -- go off at the earliest given time.
+  forM_ times $ setAlarm alrm
 
 getNextAlarm :: TimeOfDay -> IO (UTCTime)
 getNextAlarm tod = do
