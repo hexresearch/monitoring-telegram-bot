@@ -102,13 +102,15 @@ processUserRequest statsUrl token manager upd = do
 
 sendStatsReply :: Text -> (Text -> IO ()) -> IO ()
 sendStatsReply statsUrl reply' = do
+    zTime <- timeFmt <$> getZonedTime
     r <- queryStats statsUrl
     case r of
         Left err -> do
             putStrLn [qc|Error while querying stats: {err}|]
-            reply' $ "Error while querying stats"
+            reply' $ T.pack $ zTime <> "Error while querying stats"
         Right stats ->
-            reply' $ T.pack $ show stats
+            reply' $ T.pack $ zTime <> show stats
+  where timeFmt = formatTime defaultTimeLocale "%d-%m-%Y %T %z%n"
 
 sendHelpReply :: (Text -> IO ()) -> IO ()
 sendHelpReply reply' = do
