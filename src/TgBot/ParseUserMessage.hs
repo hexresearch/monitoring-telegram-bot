@@ -22,5 +22,5 @@ parseTgCommand = either (const Nothing) Just . runParser command "" . T.unpack
 
     help :: Parsec Dec String TgCommand
     help = do
-        try $ string "/help"
+        try $ string "/help" <|> string "/start"
         return TgCommandHelp
